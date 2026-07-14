@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero">
+  <h1>Somewhere nearby,<br><span class="highlight">what you have is what someone needs.</span></h1>
+  <p>Setu matches surplus food, medicine, tutoring time, and small funds to verified nearby requests -- ranked by urgency, distance, and trust, not by who scrolled first.</p>
+  <a href="{{ url_for('register') }}" class="btn btn-primary">Join Setu</a>
+  <a href="{{ url_for('login') }}" class="btn btn-outline" style="margin-left:10px;">Log in</a>
+</div>
+
+<div class="grid grid-3">
+  <div class="card stat-card">
+    <div class="stat-number">{{ stats.completed }}</div>
+    <div class="stat-label">Matches completed</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-number">{{ stats.resources + stats.needs }}</div>
+    <div class="stat-label">Posts on Setu</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-number">{{ stats.users }}</div>
+    <div class="stat-label">People in the network</div>
+  </div>
+</div>
+
+<div class="grid grid-3" style="margin-top: 10px;">
+  <div class="card">
+    <h3>🍲 Post surplus</h3>
+    <p class="muted">Extra food from an event, unused medicine, an hour of tutoring, a small amount you can spare -- list it in under a minute.</p>
+  </div>
+  <div class="card">
+    <h3>🎯 Get matched</h3>
+    <p class="muted">Our scoring engine ranks matches by urgency, distance, and how soon a resource expires -- not a static feed.</p>
+  </div>
+  <div class="card">
+    <h3>📊 See your impact</h3>
+    <p class="muted">Every confirmed match adds to a transparent, public impact counter. No black box -- see exactly what happened.</p>
+  </div>
+</div>
+{% endblock %}

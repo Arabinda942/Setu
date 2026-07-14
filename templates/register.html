@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width: 460px; margin: 40px auto;">
+  <h2>Join Setu</h2>
+  <form method="POST">
+    <label>Full name</label>
+    <input type="text" name="name" required>
+    <label>Email</label>
+    <input type="email" name="email" required>
+    <label>Password</label>
+    <input type="password" name="password" required minlength="6">
+    <div class="form-hint">At least 6 characters.</div>
+
+    <label>Address / neighborhood (helps us match you locally)</label>
+    <input type="text" name="address" placeholder="e.g. Salt Lake, Kolkata">
+
+    <input type="hidden" name="lat" id="lat">
+    <input type="hidden" name="lng" id="lng">
+    <button type="button" class="btn btn-outline btn-sm" style="margin-top:10px;"
+      onclick="useMyLocation('lat','lng','loc-status')">📍 Use my current location</button>
+    <div id="loc-status" class="form-hint"></div>
+
+    <button class="btn btn-primary" style="width:100%; margin-top: 20px;" type="submit">Create account</button>
+  </form>
+  <p class="muted" style="margin-top:16px;">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+</div>
+{% endblock %}

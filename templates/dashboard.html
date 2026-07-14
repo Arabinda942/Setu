@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid grid-3">
+  <div class="card stat-card">
+    <div class="stat-number">{{ current_user.trust_score }}</div>
+    <div class="stat-label">Trust score</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-number">{{ current_user.people_helped_count }}</div>
+    <div class="stat-label">People you've helped</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-number">{{ current_user.streak_count or 0 }}</div>
+    <div class="stat-label">Day streak 🔥</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">🎯 Suggested matches for what you're offering</h3>
+  {% if suggestions_as_giver %}
+    {% for s in suggestions_as_giver %}
+      <div class="match-row">
+        <div>
+          <strong>{{ s.resource.title }}</strong> → could go to
+          <strong>{{ s.need.title }}</strong>
+          <div class="muted">{{ s.need.category_label }} · {{ s.need.requester.name }}
+            {% if s.distance is not none %} · {{ s.distance }} km away{% endif %}
+            · <span class="badge badge-{{ s.need.urgency }}">{{ s.need.urgency_label }} urgency</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="match-score">score {{ s.score }}</div><br>
+          <form method="POST" action="{{ url_for('propose_match', resource_id=s.resource.id, need_id=s.need.id) }}" style="margin-top:6px;">
+            <button class="btn btn-primary btn-sm" type="submit">Propose match</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No open posts of yours to match yet. <a href="{{ url_for('new_give') }}">Post something to give →</a></div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">📥 Suggested matches for what you need</h3>
+  {% if suggestions_as_receiver %}
+    {% for s in suggestions_as_receiver %}
+      <div class="match-row">
+        <div>
+          <strong>{{ s.need.title }}</strong> could be fulfilled by
+          <strong>{{ s.resource.title }}</strong>
+          <div class="muted">{{ s.resource.category_label }} · from {{ s.resource.giver.name }}
+            {% if s.distance is not none %} · {{ s.distance }} km away{% endif %}
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="match-score">score {{ s.score }}</div><br>
+          <form method="POST" action="{{ url_for('propose_match', resource_id=s.resource.id, need_id=s.need.id) }}" style="margin-top:6px;">
+            <button class="btn btn-primary btn-sm" type="submit">Propose match</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No open requests of yours to match yet. <a href="{{ url_for('new_need') }}">Post a request →</a></div>
+  {% endif %}
+</div>
+
+{% if pending_matches %}
+<div class="card">
+  <h3 style="margin-top:0;">🤝 Matches in progress</h3>
+  {% for m in pending_matches %}
+    <div class="match-row">
+      <div>
+        <strong>{{ m.resource.title }}</strong> ↔ <strong>{{ m.need.title }}</strong>
+        <div class="muted">
+          with {{ m.giver.name if current_user.id == m.receiver_id else m.receiver.name }}
+          · <span class="badge badge-matched">{{ m.status }}</span>
+        </div>
+      </div>
+      <div>
+        {% if m.status == "pending" %}
+          <form method="POST" action="{{ url_for('confirm_match', match_id=m.id) }}" style="display:inline;">
+            <button class="btn btn-primary btn-sm" type="submit">Confirm</button>
+          </form>
+        {% elif m.status == "confirmed" %}
+          <form method="POST" action="{{ url_for('complete_match', match_id=m.id) }}" style="display:inline;">
+            <button class="btn btn-primary btn-sm" type="submit">Mark complete</button>
+          </form>
+        {% endif %}
+        <form method="POST" action="{{ url_for('cancel_match', match_id=m.id) }}" style="display:inline;">
+          <button class="btn btn-outline btn-sm" type="submit">Cancel</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid grid-2">
+  <div class="card">
+    <h3 style="margin-top:0;">Your gives</h3>
+    {% for r in my_resources %}
+      <div class="match-row">
+        <div>{{ r.title }}<div class="muted">{{ r.category_label }}</div></div>
+        <span class="badge badge-{{ 'completed' if r.status == 'completed' else ('matched' if r.status == 'matched' else 'open') }}">{{ r.status }}</span>
+      </div>
+    {% else %}
+      <div class="empty-state">Nothing posted yet.</div>
+    {% endfor %}
+    <a href="{{ url_for('new_give') }}" class="btn btn-outline btn-sm" style="margin-top:12px;">+ Post surplus</a>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">Your requests</h3>
+    {% for n in my_needs %}
+      <div class="match-row">
+        <div>{{ n.title }}<div class="muted">{{ n.category_label }} · {{ n.urgency_label }}</div></div>
+        <span class="badge badge-{{ 'completed' if n.status == 'fulfilled' else ('matched' if n.status == 'matched' else 'open') }}">{{ n.status }}</span>
+      </div>
+    {% else %}
+      <div class="empty-state">Nothing posted yet.</div>
+    {% endfor %}
+    <a href="{{ url_for('new_need') }}" class="btn btn-outline btn-sm" style="margin-top:12px;">+ Post a request</a>
+  </div>
+</div>
+
+{% if notifications %}
+<div class="card">
+  <h3 style="margin-top:0;">🔔 Notifications</h3>
+  {% for n in notifications %}
+    <div class="match-row"><div class="{{ '' if n.is_read else '' }}">{{ n.message }}<div class="muted">{{ n.created_at.strftime('%b %d, %H:%M') }}</div></div></div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

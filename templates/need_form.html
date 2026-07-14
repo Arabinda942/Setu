@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width: 560px; margin: 0 auto;">
+  <h2 style="margin-top:0;">🎯 Post a request</h2>
+  <form method="POST">
+    <label>Category</label>
+    <select name="category" required>
+      {% for value, label in categories %}
+        <option value="{{ value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Title</label>
+    <input type="text" name="title" placeholder="e.g. Meals for a family of 4, tonight" required>
+
+    <label>Description</label>
+    <textarea name="description" placeholder="Any details that help a giver understand the situation"></textarea>
+
+    <label>Urgency</label>
+    <select name="urgency" required>
+      {% for value, label in urgency_levels %}
+        <option value="{{ value }}" {% if value == 'medium' %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <div class="form-hint">Please use "Critical" honestly -- it's what lets us prioritize real emergencies.</div>
+
+    <label>Address / area</label>
+    <input type="text" name="address" placeholder="e.g. Howrah, West Bengal">
+    <input type="hidden" name="lat" id="lat">
+    <input type="hidden" name="lng" id="lng">
+    <button type="button" class="btn btn-outline btn-sm" style="margin-top:10px;"
+      onclick="useMyLocation('lat','lng','loc-status')">📍 Use my current location</button>
+    <div id="loc-status" class="form-hint"></div>
+
+    <button class="btn btn-primary" style="width:100%; margin-top: 20px;" type="submit">Post request</button>
+  </form>
+</div>
+{% endblock %}

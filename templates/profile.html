@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width: 480px; margin: 0 auto;">
+  <h2 style="margin-top:0;">Your profile</h2>
+  <form method="POST">
+    <label>Name</label>
+    <input type="text" name="name" value="{{ current_user.name }}" required>
+    <label>Phone</label>
+    <input type="text" name="phone" value="{{ current_user.phone or '' }}">
+    <label>Address / area</label>
+    <input type="text" name="address" value="{{ current_user.address_text or '' }}">
+    <input type="hidden" name="lat" id="lat" value="{{ current_user.lat or '' }}">
+    <input type="hidden" name="lng" id="lng" value="{{ current_user.lng or '' }}">
+    <button type="button" class="btn btn-outline btn-sm" style="margin-top:10px;"
+      onclick="useMyLocation('lat','lng','loc-status')">📍 Update my location</button>
+    <div id="loc-status" class="form-hint"></div>
+    <button class="btn btn-primary" style="width:100%; margin-top: 20px;" type="submit">Save</button>
+  </form>
+</div>
+
+<div class="grid grid-3" style="max-width: 480px; margin: 20px auto 0;">
+  <div class="card stat-card"><div class="stat-number">{{ current_user.trust_score }}</div><div class="stat-label">Trust score</div></div>
+  <div class="card stat-card"><div class="stat-number">{{ current_user.people_helped_count }}</div><div class="stat-label">Helped</div></div>
+  <div class="card stat-card"><div class="stat-number">{{ current_user.times_helped_count }}</div><div class="stat-label">Received</div></div>
+</div>
+{% endblock %}

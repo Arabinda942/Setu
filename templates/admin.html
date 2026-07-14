@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Admin panel</h2>
+
+{% if flagged %}
+<div class="card">
+  <h3 style="margin-top:0; color: var(--danger);">⚠️ Low trust score -- review</h3>
+  {% for u in flagged %}
+    <div class="match-row"><div>{{ u.name }} ({{ u.email }})</div><div>{{ u.trust_score }}</div></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h3 style="margin-top:0;">All users</h3>
+  {% for u in users %}
+    <div class="match-row">
+      <div>
+        <strong>{{ u.name }}</strong> {% if u.is_verified %}<span class="badge badge-completed">verified</span>{% endif %}
+        <div class="muted">{{ u.email }} · trust {{ u.trust_score }} · joined {{ u.created_at.strftime('%b %d, %Y') }}</div>
+      </div>
+      <form method="POST" action="{{ url_for('admin_verify', user_id=u.id) }}">
+        <button class="btn btn-outline btn-sm" type="submit">{{ 'Unverify' if u.is_verified else 'Verify' }}</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Browse open posts</h2>
+<div style="margin-bottom:20px;">
+  <a href="{{ url_for('browse') }}" class="btn btn-sm {{ 'btn-primary' if not selected_category else 'btn-outline' }}">All</a>
+  {% for value, label in categories %}
+    <a href="{{ url_for('browse', category=value) }}" class="btn btn-sm {{ 'btn-primary' if selected_category == value else 'btn-outline' }}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h3 style="margin-top:0;">🍲 Being given</h3>
+    {% for r in resources %}
+      <div class="match-row">
+        <div>
+          <strong>{{ r.title }}</strong>
+          <div class="muted">{{ r.category_label }} · {{ r.quantity or '' }} · from {{ r.giver.name }}
+            {% if r.address_text %} · {{ r.address_text }}{% endif %}
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="empty-state">Nothing here right now.</div>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">🎯 Being requested</h3>
+    {% for n in needs %}
+      <div class="match-row">
+        <div>
+          <strong>{{ n.title }}</strong>
+          <div class="muted">{{ n.category_label }} · from {{ n.requester.name }}
+            {% if n.address_text %} · {{ n.address_text }}{% endif %}
+          </div>
+        </div>
+        <span class="badge badge-{{ n.urgency }}">{{ n.urgency_label }}</span>
+      </div>
+    {% else %}
+      <div class="empty-state">Nothing here right now.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
