@@ -1,17 +1,20 @@
 {% extends "base.html" %}
+{% block page_title %}Dashboard{% endblock %}
 {% block content %}
 <div class="grid grid-3">
-  <div class="card stat-card">
-    <div class="stat-number">{{ current_user.trust_score }}</div>
-    <div class="stat-label">Trust score</div>
+  <div class="card">
+    <div class="gauge-wrap">
+      <div class="gauge" style="--pct:{{ current_user.trust_score }}"><span class="gauge-value">{{ current_user.trust_score }}</span></div>
+      <div><div class="stat-label" style="font-size:13px;">Trust score</div><div class="muted">Grows when both sides confirm</div></div>
+    </div>
   </div>
   <div class="card stat-card">
-    <div class="stat-number">{{ current_user.people_helped_count }}</div>
-    <div class="stat-label">People you've helped</div>
+    <div class="stat-icon">🤝</div>
+    <div><div class="stat-number">{{ current_user.people_helped_count }}</div><div class="stat-label">People you've helped</div></div>
   </div>
   <div class="card stat-card">
-    <div class="stat-number">{{ current_user.streak_count or 0 }}</div>
-    <div class="stat-label">Day streak 🔥</div>
+    <div class="stat-icon">🔥</div>
+    <div><div class="stat-number">{{ current_user.streak_count or 0 }}</div><div class="stat-label">Day streak</div></div>
   </div>
 </div>
 

@@ -45,6 +45,15 @@ def notify(user_id, message, link=None):
 
 def register_routes(app):
 
+    @app.context_processor
+    def inject_active_page():
+        mapping = {
+            "dashboard": "dashboard", "browse": "browse", "new_give": "give",
+            "new_need": "need", "impact": "impact", "profile": "profile",
+            "admin_panel": "admin",
+        }
+        return dict(active_page=mapping.get(request.endpoint))
+
     # ---------- Public ----------
     @app.route("/")
     def index():
@@ -60,11 +69,24 @@ def register_routes(app):
 
     @app.route("/impact")
     def impact():
+        # Rough ₹ value-equivalent per completed match, by category -- lets us show a
+        # finance-dashboard-style "value moved through the network" number, the same
+        # way a budgeting app shows category spend. These are illustrative estimates,
+        # not accounting figures.
+        CATEGORY_VALUE_INR = {
+            "food": 60, "medicine": 250, "tuition": 200, "funds": 500, "essentials": 150,
+        }
+
         completed = Match.query.filter_by(status="completed").all()
         by_category = {}
+        value_by_category = {}
         for m in completed:
             cat = m.resource.category if m.resource else "other"
             by_category[cat] = by_category.get(cat, 0) + 1
+            value_by_category[cat] = value_by_category.get(cat, 0) + CATEGORY_VALUE_INR.get(cat, 50)
+
+        total_value = sum(value_by_category.values())
+
         top_givers = (
             db.session.query(User, db.func.count(Match.id).label("cnt"))
             .join(Match, Match.giver_id == User.id)
@@ -74,12 +96,45 @@ def register_routes(app):
             .limit(5)
             .all()
         )
+
+        # Simple monthly community goal for the progress bar (tuneable, not user-set yet)
+        monthly_goal = 50
+        this_month_count = len(completed)  # demo-simple: total to date vs goal
+        goal_pct = min(100, round((this_month_count / monthly_goal) * 100)) if monthly_goal else 0
+
+        # Templated "insight" narrative -- deterministic from real data, in the spirit
+        # of the AI-advisor text style, without needing an external LLM call.
+        top_cat = max(by_category, key=by_category.get) if by_category else None
+        insight_lines = []
+        if total_completed := len(completed):
+            insight_lines.append(
+                f"So far the network has completed {total_completed} match"
+                f"{'es' if total_completed != 1 else ''}, moving an estimated ₹{total_value:,} "
+                f"worth of resources directly to people who needed them."
+            )
+            if top_cat:
+                insight_lines.append(
+                    f"{dict(CATEGORIES).get(top_cat, top_cat)} is the most active category right now -- "
+                    f"consider posting in under-represented categories to balance coverage."
+                )
+            insight_lines.append(
+                f"You're at {this_month_count}/{monthly_goal} matches toward this month's community goal."
+            )
+        else:
+            insight_lines.append("No completed matches yet -- be the first to give or request something on Setu.")
+
         return render_template(
             "impact.html",
             total_completed=len(completed),
             by_category=by_category,
+            value_by_category=value_by_category,
+            total_value=total_value,
             categories=dict(CATEGORIES),
             top_givers=top_givers,
+            goal_pct=goal_pct,
+            monthly_goal=monthly_goal,
+            this_month_count=this_month_count,
+            insight_lines=insight_lines,
         )
 
     # ---------- Auth ----------

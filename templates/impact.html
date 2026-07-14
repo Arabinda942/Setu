@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block page_title %}Impact{% endblock %}
+{% block content %}
+
+<div class="grid grid-4">
+  <div class="card stat-card">
+    <div class="stat-icon" style="background: rgba(0,217,163,0.12);">✅</div>
+    <div><div class="stat-number">{{ total_completed }}</div><div class="stat-label">Matches completed</div></div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background: rgba(124,92,255,0.15); color:var(--accent-2);">💰</div>
+    <div><div class="stat-number">₹{{ "{:,}".format(total_value) }}</div><div class="stat-label">Est. value moved</div></div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background: rgba(79,140,255,0.15); color:var(--blue);">📦</div>
+    <div><div class="stat-number">{{ by_category|length }}</div><div class="stat-label">Active categories</div></div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background: rgba(255,176,32,0.15); color:var(--warning);">🎯</div>
+    <div><div class="stat-number">{{ this_month_count }}/{{ monthly_goal }}</div><div class="stat-label">Community goal</div></div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-title">Value by category <span class="muted-link">estimated ₹ equivalent</span></div>
+    <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+    <div class="category-legend">
+      {% set colors = ['#00d9a3', '#7c5cff', '#4f8cff', '#ffb020', '#ff5c72'] %}
+      {% for cat, amount in value_by_category.items() %}
+        <div class="legend-row">
+          <span class="dot" style="background: {{ colors[loop.index0 % colors|length] }};"></span>
+          {{ categories.get(cat, cat) }}
+          <span class="amount">₹{{ "{:,}".format(amount) }}</span>
+        </div>
+      {% else %}
+        <div class="empty-state">No completed matches yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title">This month's community goal</div>
+      <div class="muted">{{ this_month_count }} of {{ monthly_goal }} matches</div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ goal_pct }}%;"></div></div>
+      <div class="muted" style="margin-top:6px;">{{ goal_pct }}% there</div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-title">💡 Setu Insight</div>
+      {% for line in insight_lines %}
+        <p style="margin: 0 0 10px;">{{ line }}</p>
+      {% endfor %}
+      <p style="margin:0; font-size:12px; color:var(--text-dim);">This is an educational estimate, not a financial or accounting record.</p>
+    </div>
+  </div>
+</div>
+
+{% if top_givers %}
+<div class="card">
+  <div class="card-title">🏆 Top contributors</div>
+  {% for user, cnt in top_givers %}
+    <div class="match-row"><div>{{ user.name }}</div><div class="match-score">{{ cnt }} people helped</div></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+<script>
+  const ctx = document.getElementById('categoryChart');
+  const labels = [{% for cat in value_by_category.keys() %}"{{ categories.get(cat, cat) }}",{% endfor %}];
+  const data = [{% for amount in value_by_category.values() %}{{ amount }},{% endfor %}];
+  const colors = ['#00d9a3', '#7c5cff', '#4f8cff', '#ffb020', '#ff5c72'];
+
+  if (data.length > 0) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (c) => c.label + ': ₹' + c.raw.toLocaleString() }
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}
